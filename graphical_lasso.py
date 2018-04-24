@@ -1,6 +1,7 @@
 # Implement here and test.
 import numpy as np
-
+from sklearn.linear_model import Lasso
+from scipy.linalg import sqrtm
 
 class GraphicalLasso(object):
 
@@ -20,12 +21,20 @@ class GraphicalLasso(object):
 
     def is_converged(self, W_prev, W_current):
         # Check if Frobenius norm or infinity norm of old_W - current_W is < self.convergence_threshold
-        raise NotImplementedError("Implement covariance.")
+        return (np.linalg.norm(W_current-W_prev,'fro') < self.convergence_threshold)
 
     def solve(self, W_11, s_12, lambda_param):
-        # Solve for beta!
-        raise NotImplementedError("Implement solver.")
-
+        # Convert to the equations in the book (9.17, 9.18)
+        Z = sqrtm(W_11)
+        y = np.linalg.solve(Z,s_12)
+        # Use Scikit's linear model to solve the resulting converted Lasso
+        lass = Lasso(alpha=self.lambda_param, copy_X=True, fit_intercept=True, max_iter=1000,
+                    normalize=False, positive=False, precompute=False, random_state=None,
+                    selection='cyclic', tol=0.0001, warm_start=False)
+        lass.fit(Z,y)
+        #return beta
+        return lass.coef_
+    
     def execute(self):
         W = self.cov(self.S)
         j = -1
