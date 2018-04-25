@@ -24,6 +24,12 @@ class GraphicalLasso(object):
         return np.cov(X.copy())
 
     def get_segment_indexes(self, dim, j):
+        """
+        Get numpy indices for segmenting matrices.
+        :param dim: The dimension of a square matrix.
+        :param j: The pivot index.
+        :return: Numpy "fancy" indexes.
+        """
         row_idx = np.concatenate((np.arange(0, j), np.arange(j+1, dim)))
         sub_mat_idx = list(map(lambda x: [x], row_idx))
         return row_idx, sub_mat_idx
@@ -42,6 +48,13 @@ class GraphicalLasso(object):
         return sub_mat, row, X[j, j]
 
     def set_segment_row(self, X, j, value):
+        """
+        Set row entries of X according to segmentation about pivot index j.
+
+        :param X: The matrix for which entries will be set.
+        :param j: The pivot index.
+        :param value: The value the rows should be set to.
+        """
         row_idx, sub_mat_idx = self.get_segment_indexes(X.shape[0], j)
         X[j, row_idx] = value
         X.T[j, row_idx] = value
