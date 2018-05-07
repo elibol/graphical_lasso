@@ -21,7 +21,7 @@ class GraphicalLasso(object):
         """
         Computes the empirical covariance given in (9.9) of Statistical Learning with Sparsity.
         """
-        return np.cov(X.copy())
+        return np.cov(X.copy(), bias=1)
 
     def get_segment_indexes(self, dim, j):
         """
@@ -83,9 +83,9 @@ class GraphicalLasso(object):
         y = np.linalg.solve(Z, s_12)
         # Use Scikit's linear model to solve the resulting converted Lasso
         lass = Lasso(alpha=self.lambda_param, copy_X=True, fit_intercept=True, max_iter=1000,
-                    normalize=False, positive=False, precompute=False, random_state=None,
-                    selection='cyclic', tol=0.0001, warm_start=False)
-        lass.fit(Z,y)
+                     normalize=False, positive=False, precompute=False, random_state=None,
+                     selection='cyclic', tol=0.0001, warm_start=False)
+        lass.fit(Z, y)
         return lass.coef_
 
     def execute(self, A):
@@ -97,7 +97,7 @@ class GraphicalLasso(object):
         :return: The estimated precision matrix of the zero-mean multivariate Gaussian distribution
                  from which samples of A are drawn.
         """
-        S = self.cov(A)
+        S = self.cov(A.T)
         W = S
         j = -1
         max_j = W.shape[0]
@@ -166,7 +166,9 @@ if __name__ == "__main__":
     # TODO(barry): Simple test for the solver.
 
     # Test the execute code path (not testing for correctness).
-    A = np.array([[1, -1, -1, 1],
-                  [1, 1, 1, -1]])
+    A = np.array([[1, -1],
+                  [-1, 1],
+                  [1, 1],
+                  [1, -1]])
     precision_mat = lasso.execute(A)
     print("precision_mat: ", precision_mat)
