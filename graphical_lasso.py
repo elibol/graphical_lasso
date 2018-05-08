@@ -82,7 +82,7 @@ class GraphicalLasso(object):
         Z = sqrtm(W_11)
         y = np.linalg.solve(Z, s_12)
         # Use Scikit's linear model to solve the resulting converted Lasso
-        lass = Lasso(alpha=self.lambda_param, copy_X=True, fit_intercept=True, max_iter=1000,
+        lass = Lasso(alpha=self.lambda_param, copy_X=True, fit_intercept=False, max_iter=1000,
                      normalize=False, positive=False, precompute=False, random_state=None,
                      selection='cyclic', tol=0.0001, warm_start=False)
         lass.fit(Z, y)
@@ -98,7 +98,7 @@ class GraphicalLasso(object):
                  from which samples of A are drawn.
         """
         S = self.cov(A.T)
-        W = S
+        W = np.copy(S)
         j = -1
         max_j = W.shape[0]
         while True:
@@ -128,7 +128,7 @@ def is_psd(X):
 
 if __name__ == "__main__":
     # Basic tests.
-    lasso = GraphicalLasso()
+    lasso = GraphicalLasso(lambda_param=0.0, convergence_threshold=1e-6)
 
     # Test covariance.
     X = np.array([[1, 3, 5, 7],
@@ -163,12 +163,14 @@ if __name__ == "__main__":
     # Identical matrices considered converged.
     assert lasso.is_converged(Y, Y.T)
 
-    # TODO(barry): Simple test for the solver.
+    # Make sure solution to obvious equation is correct.
+    beta = lasso.solve(np.array([[1]]), [-.5])
+    assert np.allclose(beta, [-.5])
 
     # Test the execute code path (not testing for correctness).
-    A = np.array([[1, -1],
+    X = np.array([[1, -1],
                   [-1, 1],
                   [1, 1],
                   [1, -1]])
-    precision_mat = lasso.execute(A)
-    print("precision_mat: ", precision_mat)
+    precision_mat = lasso.execute(X)
+    assert np.allclose(precision_mat, np.linalg.inv(lasso.cov(X.T)))
