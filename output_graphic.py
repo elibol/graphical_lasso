@@ -5,12 +5,6 @@ import graphical_lasso as gl
 import numpy as np
 
 
-def get_precision(A):
-    lasso = gl.GraphicalLasso(convergence_threshold=1e-6, lambda_param=1e-6)
-    precision = lasso.execute(A)
-    return precision
-
-
 def graph_from_precision_matrix(precision, sources):
     edges = []
     nodes = {}
@@ -33,12 +27,12 @@ def graph_from_precision_matrix(precision, sources):
 
 
 def draw_graph(G, node_labels):
-    pos = nx.spring_layout(G, iterations=500)  # positions for all nodes
+    pos = nx.spring_layout(G, iterations=1000)  # positions for all nodes
 
     # nodes
     nx.draw_networkx_nodes(G, pos,
                            node_color='black',
-                           node_size=5,
+                           node_size=500,
                            alpha=0.1)
     # edges
     nx.draw_networkx_edges(G, pos, width=1.0, alpha=1.0)
@@ -47,12 +41,12 @@ def draw_graph(G, node_labels):
                             font_size=12,
                             font_color="white",
                             bbox=dict(
-        boxstyle="square,pad=0.3",
-        fc="black",
-        ec="white",
-        lw=1,
-        alpha=0.5
-    ))
+                                boxstyle="square,pad=0.3",
+                                fc="black",
+                                ec="white",
+                                lw=1,
+                                alpha=0.9
+                            ))
 
     plt.axis('off')
     plt.show()
@@ -62,8 +56,14 @@ def main(topic="isis"):
     # get A
     A, sources = pp.get_A_and_labels(topic)
     print(np.unique(A))
+    A = A.astype('float64')
+    if topic == "brexit":
+        # add noise to brexit.
+        A += np.random.randn(A.shape[0], A.shape[1])*1e-16
+
     # compute precision
-    precision = get_precision(A)
+    lasso = gl.GraphicalLasso(convergence_threshold=1e-6, lambda_param=1e-5/4)
+    precision = lasso.execute(A)
 
     # plot precision
     G, node_labels = graph_from_precision_matrix(precision, sources)
@@ -71,5 +71,5 @@ def main(topic="isis"):
 
 
 if __name__ == "__main__":
+    # main("isis")
     main("brexit")
-
