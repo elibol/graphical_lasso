@@ -115,6 +115,17 @@ def filter_src_actor_dict(ent_source_sent):
         sources |= set(ent_source_sent[entity].keys())
     sources = list(sources)
 
+    actor_per_source = {source: 0 for source in sources}
+    total = 0
+    for entity in entities_kept:
+        for source in ent_source_sent[entity].keys():
+            actor_per_source[source] += 1
+            total += 1
+
+    print("num actor per source")
+    for source in actor_per_source:
+        print(source, actor_per_source[source]/float(total))
+
     print("num_actors =", len(entities_kept), "num_sources =", len(sources))
     return entities_kept, sources
 
@@ -175,5 +186,5 @@ def get_A_and_labels(topic="isis"):
 
 
 if __name__ == "__main__":
-    global_A = get_A()
-    print(global_A.shape)
+    print(get_A("isis").shape)
+    print(get_A("brexit").shape)
